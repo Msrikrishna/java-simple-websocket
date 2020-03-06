@@ -1,6 +1,7 @@
 package com;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,21 +11,28 @@ import java.net.Socket;
  *
  */
 public class Server {
-    public static void main(String[] args) {
-        try {
-            ServerSocket ss = new ServerSocket(6666);
-            Socket my_socket = ss.accept();  //A common endpoint for Server and Client
-            DataInputStream dis = new DataInputStream(my_socket.getInputStream());
-            String client_message = dis.readUTF();
-            System.out.println("Message from client: "+ client_message);
-            ss.close();
-        } catch (IOException e) {
-            
-            e.printStackTrace();
+    public static void main(String[] args) throws IOException {
+        ServerSocket ss = new ServerSocket(6666);
+        Socket my_client_socket = null;
+        
+        while (true) {
+            try {
+                
+                
+                my_client_socket = ss.accept();  //A common endpoint for Server and Client
+                DataInputStream dis = new DataInputStream(my_client_socket.getInputStream());
+                DataOutputStream dos = new DataOutputStream(my_client_socket.getOutputStream());
+                
+                Thread t = new ClientHandler(my_client_socket,dis,dos);
+                t.start();
+                System.out.println("My new customer thread Id is: "+t.getId()+"and name is "+t.getName());
+                
+            } catch (IOException e) {
+                ss.close();
+                my_client_socket.close();  //You get to close this if the socket is declared outside main
+                e.printStackTrace();
+            }
         }
-
-
-
-        System.out.println( "Hello World!" );
+        
     }
 }
